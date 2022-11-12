@@ -32,15 +32,15 @@ class BookData(TypedDict):
     product_type: NotRequired[str | None]
 
 
-def check_url_domain(url: str | ParseResult | None):
-    if url is None:
-        return False
+def check_url_domain(url: str | ParseResult):
     if isinstance(url, str):
         url = urlparse(url)
-    return not bool(url.netloc) or url.netloc == BOOK_TO_SCRAPE_ROOT.netloc
+    return url.netloc != ''
 
 
-def get_full_url(url: str | ParseResult | None):
+def get_full_url(url: str | ParseResult | None, parent_url: str | ParseResult | None):
+    if isinstance(parent_url, str):
+        parent_url = urlparse(parent_url)
     if url is not None:
         if isinstance(url, str):
             url_info = urlparse(url)
@@ -49,7 +49,9 @@ def get_full_url(url: str | ParseResult | None):
         if bool(url_info.netloc):
             result = str(url)
         else:
-            result = urljoin(BOOK_TO_SCRAPE_ROOT_URL, str(url))
+            if parent_url is None:
+                parent_url = BOOK_TO_SCRAPE_ROOT
+            result = urljoin(str(parent_url), str(url))
         if check_url_domain(result):
             return result
     return None

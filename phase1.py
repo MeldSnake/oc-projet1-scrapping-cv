@@ -1,6 +1,6 @@
 import re
 from typing import TypedDict
-from urllib.parse import urljoin, urlparse
+from urllib.parse import ParseResult, urljoin, urlparse
 
 from bs4 import BeautifulSoup, Tag
 from requests import Session
@@ -12,7 +12,7 @@ PRICE_RE = re.compile(r'^.*?(?P<price_value>\d+(?:\.\d+)?)$')
 
 
 def load_book_page(url: str | None, req_session: Session) -> data.BookData | None:
-    url = data.get_full_url(url)
+    url = data.get_full_url(url, None)
     if url is None:
         return None
 
@@ -23,13 +23,11 @@ def load_book_page(url: str | None, req_session: Session) -> data.BookData | Non
 
     breadcrumb = doc.select('body>.page>.page_inner ul.breadcrumb li')
     product_page = doc.select_one('body>.page>.page_inner article.product_page')
-    if product_page is None or len(breadcrumb) == 0:
-        return None
 
     book = data.BookData(**{})
     book["category"] = breadcrumb[-2].text.strip()
     cover_img = product_page.select_one('#product_gallery img[src]:not([src=""])')
-    book['image_url'] = data.get_full_url(cover_img.attrs["src"].strip())
+    book['image_url'] = data.get_full_url(cover_img.attrs["src"].strip(), url)
     product_main = product_page.select_one(".product_main")
     book['title'] = product_main.select_one('h1').text.strip()
 
@@ -73,7 +71,6 @@ def load_book_page(url: str | None, req_session: Session) -> data.BookData | Non
 
     book['product_page_url'] = url
     return book
-    # breadcrumb contains the category and the Title?
 
 
 if __name__ == "__main__":
