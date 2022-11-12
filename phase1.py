@@ -1,32 +1,38 @@
 import re
 from typing import TypedDict
+from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup, Tag
 from requests import Session
 
 import data
 
-# https://books.toscrape.com/catalogue/sharp-objects_997/index.html
-
 AVAILABILITY_RE = re.compile(r'^.*\((?P<count>\d+) available\)')
 PRICE_RE = re.compile(r'^.*?(?P<price_value>\d+(?:\.\d+)?)$')
 
 
-def load_book_page(url: str, req_session: Session) -> data.BookData | None:
+def load_book_page(url: str | None, req_session: Session) -> data.BookData | None:
+    url = data.get_full_url(url)
+    if url is None:
+        return None
+
     response = req_session.get(url)
     if not response.ok or response.status_code != 200:
         return None
     doc = BeautifulSoup(response.text, 'html.parser')
+
     breadcrumb = doc.select('body>.page>.page_inner ul.breadcrumb li')
     product_page = doc.select_one('body>.page>.page_inner article.product_page')
     if product_page is None or len(breadcrumb) == 0:
         return None
+
     book = data.BookData(**{})
     book["category"] = breadcrumb[-2].text.strip()
     cover_img = product_page.select_one('#product_gallery img[src]:not([src=""])')
-    book['image_url'] = cover_img.attrs["src"].strip()
+    book['image_url'] = data.get_full_url(cover_img.attrs["src"].strip())
     product_main = product_page.select_one(".product_main")
     book['title'] = product_main.select_one('h1').text.strip()
+
     rating_classes = product_main.select_one('.star-rating').attrs['class']
     rating: int = 0
     if rating_classes is None:
@@ -37,6 +43,7 @@ def load_book_page(url: str, req_session: Session) -> data.BookData | None:
         for rating_class in rating_classes:
             rating = data.RATING_MAPPING.get(rating_class, rating)
     book['review_rating'] = rating
+
     prod_desc = product_page.select_one('#product_description')
     book['product_description'] = prod_desc.findNextSibling('p').text.strip()
     prod_info_table: Tag = prod_desc.findNextSibling('table')
@@ -63,15 +70,15 @@ def load_book_page(url: str, req_session: Session) -> data.BookData | None:
                     book['number_available'] = 0
             case _:
                 pass
+
     book['product_page_url'] = url
     return book
     # breadcrumb contains the category and the Title?
+
 
 if __name__ == "__main__":
     import sys
     session = Session()
     if len(sys.argv) > 1:
         book = load_book_page(sys.argv[1], session)
-    else:
-        book = load_book_page("https://books.toscrape.com/catalogue/sharp-objects_997/index.html", session)
-    print(book)
+        print(book)

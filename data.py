@@ -1,7 +1,9 @@
 import re
 from typing import LiteralString, TypedDict, NotRequired
+from urllib.parse import ParseResult, urlparse, urljoin
 
-BOOK_TO_SCRAPE_URL: LiteralString = "http://books.toscrape.com/"
+BOOK_TO_SCRAPE_ROOT_URL: LiteralString = "http://books.toscrape.com/"
+BOOK_TO_SCRAPE_ROOT = urlparse(BOOK_TO_SCRAPE_ROOT_URL)
 PAGE_NUMBER_REGEXP = re.compile(r'^page-(?P<page>\d+).html$', re.IGNORECASE)
 
 
@@ -28,3 +30,26 @@ class BookData(TypedDict):
     image_url: str | None
 
     product_type: NotRequired[str | None]
+
+
+def check_url_domain(url: str | ParseResult | None):
+    if url is None:
+        return False
+    if isinstance(url, str):
+        url = urlparse(url)
+    return not bool(url.netloc) or url.netloc == BOOK_TO_SCRAPE_ROOT.netloc
+
+
+def get_full_url(url: str | ParseResult | None):
+    if url is not None:
+        if isinstance(url, str):
+            url_info = urlparse(url)
+        else:
+            url_info = url
+        if bool(url_info.netloc):
+            result = str(url)
+        else:
+            result = urljoin(BOOK_TO_SCRAPE_ROOT_URL, str(url))
+        if check_url_domain(result):
+            return result
+    return None
