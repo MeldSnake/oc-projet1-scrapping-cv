@@ -1,8 +1,10 @@
+from pathlib import Path
 import re
 import csv
-from os import PathLike
-from typing import LiteralString, TypedDict, NotRequired
+from typing import LiteralString, TypedDict
 from urllib.parse import ParseResult, urlparse, urljoin
+
+import requests
 
 BOOK_TO_SCRAPE_ROOT_URL: LiteralString = "http://books.toscrape.com/"
 BOOK_TO_SCRAPE_ROOT = urlparse(BOOK_TO_SCRAPE_ROOT_URL)
@@ -58,8 +60,12 @@ def get_full_url(url: str | ParseResult | None, parent_url: str | ParseResult | 
     return None
 
 
-def write_csv(filepath: str, books: list[BookData]):
-    with open(filepath, mode="w", newline='', encoding='utf_8_sig') as fd:
+def save_data_csv(directory: Path, filename: str, books: list[BookData], with_images: bool = False):
+    filename = slugify(filename.removesuffix('.csv')) + '.csv'
+    directory.mkdir(parents=True, exist_ok=True)
+    if not directory.is_dir():
+        return
+    with open(directory / filename, mode="w", newline='', encoding='utf_8_sig') as fd:
         csv_writer = csv.DictWriter(fd, fieldnames=[
             'product_page_url',
             'universal_product_code (upc)',
@@ -74,3 +80,28 @@ def write_csv(filepath: str, books: list[BookData]):
         ])
         csv_writer.writeheader()
         csv_writer.writerows(books)
+
+
+def save_data_images(directory: Path, books: list[BookData], req_session: requests.Session):
+    directory.mkdir(exist_ok=True)
+    if not directory.is_dir():
+        return
+    for book in books:
+        image_url = book['image_url']
+        if image_url == '':
+            continue
+        image_url_info = urlparse(image_url)
+        _, extension = image_url_info.path.rsplit('.', 1)
+        with req_session.get(image_url) as response:
+            if response.ok and response.status_code == 200:
+                with open(directory / f"{book['universal_product_code (upc)']}.{extension}", 'wb') as img_fd:
+                    for data in response.iter_content(8192):
+                        img_fd.write(data)
+
+
+def slugify(filename: str):
+    filename = re.sub(r'[^\w\d\s-]', '', filename) \
+        .strip() \
+        .lower()
+    filename = re.sub(r'[^\w\d]+', '-', filename)
+    return filename

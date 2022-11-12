@@ -1,3 +1,5 @@
+import pathlib
+
 from bs4 import BeautifulSoup
 from requests import Session
 
@@ -16,6 +18,7 @@ def load_category_page(url: str | None, req_session: Session):
         return None
     doc = BeautifulSoup(response.content, 'html.parser')
 
+    category_name = doc.select_one('body>.page>.page_inner .page-header>h1').text.strip()
     section = doc.select_one('body>.page>.page_inner section')
     if section is None:
         return None
@@ -36,20 +39,21 @@ def load_category_page(url: str | None, req_session: Session):
         next_page_url = data.get_full_url(next_page.attrs['href'].strip(), url)
     else:
         next_page_url = None
-    return (books, next_page_url)
+    return (books, category_name, next_page_url)
 
 
 def load_category(url: str | None, req_session: Session):
     all_books: list[data.BookData] = []
+    category_name = None
     while (res := load_category_page(url, req_session)) is not None:
-        books, url = res
+        books, category_name, url = res
         all_books.extend(books)
-    return all_books
+    return all_books, category_name
 
 
 if __name__ == "__main__":
     import sys
     session = Session()
     if len(sys.argv) > 1:
-        books = load_category(sys.argv[1], session)
-        data.write_csv("./phase2.csv", books)
+        books, category_name = load_category(sys.argv[1], session)
+        data.save_data_csv(pathlib.Path.cwd() / "output" / "phase2", category_name or "unknown", books)

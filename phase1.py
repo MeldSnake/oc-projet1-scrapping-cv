@@ -1,6 +1,5 @@
+import pathlib
 import re
-from typing import TypedDict
-from urllib.parse import ParseResult, urljoin, urlparse
 
 from bs4 import BeautifulSoup, Tag
 from requests import Session
@@ -43,8 +42,11 @@ def load_book_page(url: str | None, req_session: Session) -> data.BookData | Non
     book['review_rating'] = rating
 
     prod_desc = product_page.select_one('#product_description')
-    book['product_description'] = prod_desc.find_next_sibling('p').text.strip()
-    prod_info_table: Tag = prod_desc.find_next_sibling('table')
+    if prod_desc is not None:
+        book['product_description'] = prod_desc.find_next_sibling('p').text.strip()
+    else:
+        book['product_description'] = ''
+    prod_info_table: Tag = product_page.select_one('table.table.table-striped')
     for row in prod_info_table.select('tr'):
         row_name = row.select_one('th').text.strip()
         row_value = row.select_one('td').text.strip()
@@ -72,7 +74,5 @@ if __name__ == "__main__":
     session = Session()
     if len(sys.argv) > 1:
         book = load_book_page(sys.argv[1], session)
-        if book is None:
-            data.write_csv("./phase1.csv", [])
-        else:
-            data.write_csv("./phase1.csv", [book])
+        if book is not None:
+            data.save_data_csv(pathlib.Path.cwd() / "output" / "phase1", f"{book['title']}-{book['universal_product_code (upc)']}", [book])
