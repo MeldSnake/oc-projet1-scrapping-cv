@@ -1,4 +1,6 @@
 import re
+import csv
+from os import PathLike
 from typing import LiteralString, TypedDict, NotRequired
 from urllib.parse import ParseResult, urlparse, urljoin
 
@@ -17,19 +19,18 @@ RATING_MAPPING = {
 }
 
 
-class BookData(TypedDict):
-    product_page_url: str
-    universal_product_code: str
-    title: str
-    price_including_tax: float
-    price_excluding_tax: float
-    number_available: int
-    product_description: str
-    category: str
-    review_rating: float
-    image_url: str | None
-
-    product_type: NotRequired[str | None]
+BookData = TypedDict('BookData', {
+    'product_page_url': str,
+    'universal_product_code (upc)': str,
+    'title': str,
+    'price_including_tax': float,
+    'price_excluding_tax': float,
+    'number_available': int,
+    'product_description': str,
+    'category': str,
+    'review_rating': float,
+    'image_url': str,
+})
 
 
 def check_url_domain(url: str | ParseResult):
@@ -47,11 +48,29 @@ def get_full_url(url: str | ParseResult | None, parent_url: str | ParseResult | 
         else:
             url_info = url
         if bool(url_info.netloc):
-            result = str(url)
+            result = url_info.geturl()
         else:
             if parent_url is None:
                 parent_url = BOOK_TO_SCRAPE_ROOT
-            result = urljoin(str(parent_url), str(url))
+            result = urljoin(parent_url.geturl(), url_info.geturl())
         if check_url_domain(result):
             return result
     return None
+
+
+def write_csv(filepath: str, books: list[BookData]):
+    with open(filepath, mode="w", newline='', encoding='utf-8') as fd:
+        csv_writer = csv.DictWriter(fd, fieldnames=[
+            'product_page_url',
+            'universal_product_code (upc)',
+            'title',
+            'price_including_tax',
+            'price_excluding_tax',
+            'number_available',
+            'product_description',
+            'category',
+            'review_rating',
+            'image_url',
+        ])
+        csv_writer.writeheader()
+        csv_writer.writerows(books)

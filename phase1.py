@@ -27,7 +27,7 @@ def load_book_page(url: str | None, req_session: Session) -> data.BookData | Non
     book = data.BookData(**{})
     book["category"] = breadcrumb[-2].text.strip()
     cover_img = product_page.select_one('#product_gallery img[src]:not([src=""])')
-    book['image_url'] = data.get_full_url(cover_img.attrs["src"].strip(), url)
+    book['image_url'] = data.get_full_url(cover_img.attrs["src"].strip(), url) or ""
     product_main = product_page.select_one(".product_main")
     book['title'] = product_main.select_one('h1').text.strip()
 
@@ -50,7 +50,7 @@ def load_book_page(url: str | None, req_session: Session) -> data.BookData | Non
         row_value = row.select_one('td').text.strip()
         match row_name:
             case "UPC":
-                book['universal_product_code'] = row_value
+                book['universal_product_code (upc)'] = row_value
             case "Price (excl. tax)":
                 if (match := PRICE_RE.match(row_value)) is not None:
                     book['price_excluding_tax'] = float(match['price_value'])
@@ -78,4 +78,7 @@ if __name__ == "__main__":
     session = Session()
     if len(sys.argv) > 1:
         book = load_book_page(sys.argv[1], session)
-        print(book)
+        if book is None:
+            data.write_csv("./phase1.csv", [])
+        else:
+            data.write_csv("./phase1.csv", [book])
