@@ -15,7 +15,7 @@ def load_all_categories():
         if not response.ok or response.status_code != 200:
             categories = []
         else:
-            doc = BeautifulSoup(response.text, 'html.parser')
+            doc = BeautifulSoup(response.content, 'html.parser')
             categories = doc.select('.page .side_categories>ul>li>ul>li>a')
     for category in categories:
         if (href := category.attrs.get('href', '').strip()) != '':

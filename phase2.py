@@ -1,9 +1,8 @@
-import csv
-import data
 from bs4 import BeautifulSoup
 from requests import Session
+
+import data
 from phase1 import load_book_page
-from urllib.parse import ParseResult, urljoin, urlparse
 
 
 def load_category_page(url: str | None, req_session: Session):
@@ -15,7 +14,7 @@ def load_category_page(url: str | None, req_session: Session):
     response = req_session.get(url)
     if not response.ok or response.status_code != 200:
         return None
-    doc = BeautifulSoup(response.text, 'html.parser')
+    doc = BeautifulSoup(response.content, 'html.parser')
 
     section = doc.select_one('body>.page>.page_inner section')
     if section is None:

@@ -19,7 +19,7 @@ def load_book_page(url: str | None, req_session: Session) -> data.BookData | Non
     response = req_session.get(url)
     if not response.ok or response.status_code != 200:
         return None
-    doc = BeautifulSoup(response.text, 'html.parser')
+    doc = BeautifulSoup(response.content, 'html.parser')
 
     breadcrumb = doc.select('body>.page>.page_inner ul.breadcrumb li')
     product_page = doc.select_one('body>.page>.page_inner article.product_page')
@@ -43,8 +43,8 @@ def load_book_page(url: str | None, req_session: Session) -> data.BookData | Non
     book['review_rating'] = rating
 
     prod_desc = product_page.select_one('#product_description')
-    book['product_description'] = prod_desc.findNextSibling('p').text.strip()
-    prod_info_table: Tag = prod_desc.findNextSibling('table')
+    book['product_description'] = prod_desc.find_next_sibling('p').text.strip()
+    prod_info_table: Tag = prod_desc.find_next_sibling('table')
     for row in prod_info_table.select('tr'):
         row_name = row.select_one('th').text.strip()
         row_value = row.select_one('td').text.strip()
@@ -52,15 +52,9 @@ def load_book_page(url: str | None, req_session: Session) -> data.BookData | Non
             case "UPC":
                 book['universal_product_code (upc)'] = row_value
             case "Price (excl. tax)":
-                if (match := PRICE_RE.match(row_value)) is not None:
-                    book['price_excluding_tax'] = float(match['price_value'])
-                else:
-                    book['price_excluding_tax'] = 0.0
+                book['price_excluding_tax'] = row_value
             case "Price (incl. tax)":
-                if (match := PRICE_RE.match(row_value)) is not None:
-                    book['price_including_tax'] = float(match['price_value'])
-                else:
-                    book['price_including_tax'] = 0.0
+                book['price_including_tax'] = row_value
             case "Availability":
                 if (match := AVAILABILITY_RE.match(row_value)) is not None:
                     book['number_available'] = int(match['count'])

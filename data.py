@@ -23,8 +23,8 @@ BookData = TypedDict('BookData', {
     'product_page_url': str,
     'universal_product_code (upc)': str,
     'title': str,
-    'price_including_tax': float,
-    'price_excluding_tax': float,
+    'price_including_tax': str,
+    'price_excluding_tax': str,
     'number_available': int,
     'product_description': str,
     'category': str,
@@ -59,7 +59,7 @@ def get_full_url(url: str | ParseResult | None, parent_url: str | ParseResult | 
 
 
 def write_csv(filepath: str, books: list[BookData]):
-    with open(filepath, mode="w", newline='', encoding='utf-8') as fd:
+    with open(filepath, mode="w", newline='', encoding='utf_8_sig') as fd:
         csv_writer = csv.DictWriter(fd, fieldnames=[
             'product_page_url',
             'universal_product_code (upc)',
