@@ -6,6 +6,8 @@ from urllib.parse import ParseResult, urljoin, urlparse
 
 import requests
 
+import data
+
 BOOK_TO_SCRAPE_ROOT_URL: LiteralString = "http://books.toscrape.com/"
 BOOK_TO_SCRAPE_ROOT = urlparse(BOOK_TO_SCRAPE_ROOT_URL)
 
@@ -107,9 +109,9 @@ def save_data_images(directory: Path, books: list[BookData], req_session: reques
         _, extension = image_url_info.path.rsplit('.', 1)
         with req_session.get(image_url) as response:
             if response.ok and response.status_code == 200:
-                with open(directory / f"{book['universal_product_code (upc)']}.{extension}", 'wb') as img_fd:
-                    for data in response.iter_content(8192):
-                        img_fd.write(data)
+                with open(directory / f"{data.slugify(book['title'])}-{book['universal_product_code (upc)']}.{extension}", 'wb') as img_fd:
+                    for chunk in response.iter_content(8192):
+                        img_fd.write(chunk)
 
 
 def slugify(filename: str):

@@ -75,7 +75,7 @@ def load_book_page(url: str | None, req_session: Session) -> data.BookData | Non
 def save_single_book(destination: pathlib.Path, book: data.BookData | None):
     """Charge un seul livre dans son propre fichier CSV."""
     if book is not None:
-        data.save_data_csv(destination, f"{book['title']}-{book['universal_product_code (upc)']}", [book])
+        data.save_data_csv(destination, f"{data.slugify(book['title'])}-{book['universal_product_code (upc)']}", [book])
 
 
 if __name__ == "__main__":
