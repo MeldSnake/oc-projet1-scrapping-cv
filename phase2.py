@@ -51,9 +51,15 @@ def load_category(url: str | None, req_session: Session):
     return all_books, category_name
 
 
+def save_category(destination: pathlib.Path, category_name: str, books: list[data.BookData], req_session: Session, with_images: bool = False):
+    data.save_data_csv(destination, category_name, books)
+    if with_images:
+        data.save_data_images(destination / data.slugify(category_name.removesuffix('.csv')), books, req_session)
+
+
 if __name__ == "__main__":
     import sys
-    session = Session()
     if len(sys.argv) > 1:
-        books, category_name = load_category(sys.argv[1], session)
-        data.save_data_csv(pathlib.Path.cwd() / "output" / "phase2", category_name or "unknown", books)
+        with Session() as session:
+            books, category_name = load_category(sys.argv[1], session)
+            save_category(pathlib.Path.cwd() / "output" / "phase2", category_name or "unknown", books, session)

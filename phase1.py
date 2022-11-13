@@ -7,7 +7,6 @@ from requests import Session
 import data
 
 AVAILABILITY_RE = re.compile(r'^.*\((?P<count>\d+) available\)')
-PRICE_RE = re.compile(r'^.*?(?P<price_value>\d+(?:\.\d+)?)$')
 
 
 def load_book_page(url: str | None, req_session: Session) -> data.BookData | None:
@@ -69,10 +68,14 @@ def load_book_page(url: str | None, req_session: Session) -> data.BookData | Non
     return book
 
 
+def save_single_book(destination: pathlib.Path, book: data.BookData | None):
+    if book is not None:
+        data.save_data_csv(destination, f"{book['title']}-{book['universal_product_code (upc)']}", [book])
+
+
 if __name__ == "__main__":
     import sys
     session = Session()
     if len(sys.argv) > 1:
         book = load_book_page(sys.argv[1], session)
-        if book is not None:
-            data.save_data_csv(pathlib.Path.cwd() / "output" / "phase1", f"{book['title']}-{book['universal_product_code (upc)']}", [book])
+        save_single_book(pathlib.Path.cwd() / "output" / "phase1", book)

@@ -1,14 +1,13 @@
-from pathlib import Path
-import re
 import csv
+import re
+from pathlib import Path
 from typing import LiteralString, TypedDict
-from urllib.parse import ParseResult, urlparse, urljoin
+from urllib.parse import ParseResult, urljoin, urlparse
 
 import requests
 
 BOOK_TO_SCRAPE_ROOT_URL: LiteralString = "http://books.toscrape.com/"
 BOOK_TO_SCRAPE_ROOT = urlparse(BOOK_TO_SCRAPE_ROOT_URL)
-PAGE_NUMBER_REGEXP = re.compile(r'^page-(?P<page>\d+).html$', re.IGNORECASE)
 
 
 RATING_MAPPING = {
@@ -35,7 +34,7 @@ BookData = TypedDict('BookData', {
 })
 
 
-def check_url_domain(url: str | ParseResult):
+def is_absolute_url(url: str | ParseResult):
     if isinstance(url, str):
         url = urlparse(url)
     return url.netloc != ''
@@ -55,12 +54,12 @@ def get_full_url(url: str | ParseResult | None, parent_url: str | ParseResult | 
             if parent_url is None:
                 parent_url = BOOK_TO_SCRAPE_ROOT
             result = urljoin(parent_url.geturl(), url_info.geturl())
-        if check_url_domain(result):
+        if is_absolute_url(result):
             return result
     return None
 
 
-def save_data_csv(directory: Path, filename: str, books: list[BookData], with_images: bool = False):
+def save_data_csv(directory: Path, filename: str, books: list[BookData]):
     filename = slugify(filename.removesuffix('.csv')) + '.csv'
     directory.mkdir(parents=True, exist_ok=True)
     if not directory.is_dir():
