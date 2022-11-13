@@ -20,7 +20,7 @@ RATING_MAPPING = {
     "Four": 4,
     "Five": 5
 }
-"""Mapping pour l'assignation de valeures relative a la note des livres."""
+"""Mapping pour l'assignation de valeures relative à la note des livres."""
 
 
 BookData = TypedDict('BookData', {
@@ -34,8 +34,9 @@ BookData = TypedDict('BookData', {
     'category': str,
     'review_rating': float,
     'image_url': str,
+    'image_path': str,
 })
-"""Hashmap representant un livre, identique a ce qui est stocké dans les fichiers CSV."""
+"""Hashmap representant un livre, identique à ce qui est stocké dans les fichiers CSV."""
 
 
 def is_absolute_url(url: str | ParseResult):
@@ -88,7 +89,8 @@ def save_data_csv(directory: Path, filename: str, books: list[BookData]):
             'category',
             'review_rating',
             'image_url',
-        ])
+            'image_path',
+        ], extrasaction='ignore')
         csv_writer.writeheader()
         csv_writer.writerows(books)
 
