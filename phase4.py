@@ -1,5 +1,5 @@
 """
-Extrait, Transforme et Charge toutes les informations sur les livres presents dans le site books.toscrap.com.
+Extrait, Transforme et Charge toutes les informations sur les livres présents dans le site books.toscrap.com.
 Extrait aussi les images de couverture de ceux-ci.
 """
 

@@ -47,8 +47,8 @@ def is_absolute_url(url: str | ParseResult):
 
 def get_full_url(url: str | ParseResult | None, parent_url: str | ParseResult | None):
     """
-    Join une url relative a une url de base ou retourne url si celle-ci est absolue.
-    Retourne None dans le cas ou aucune URL absolue n'a pu ëtre crée.
+    Joint une url relative a une url de base ou retourne `url` si celle-ci est absolue.
+    Retourne `None` dans le cas ou aucune URL absolue n'a pu être créé.
     """
     if isinstance(parent_url, str):
         parent_url = urlparse(parent_url)
@@ -70,7 +70,7 @@ def get_full_url(url: str | ParseResult | None, parent_url: str | ParseResult | 
 
 def save_data_csv(directory: Path, filename: str, books: list[BookData]):
     """
-    Enregistre les livres donnés dans un fichier nommé `filename`.csv dans le repertoire `directory`.
+    Enregistre les livres donnés dans un fichier nommé `filename`.csv dans le répertoire `directory`.
     """
     filename = slugify(filename.removesuffix('.csv')) + '.csv'
     directory.mkdir(parents=True, exist_ok=True)
@@ -95,8 +95,8 @@ def save_data_csv(directory: Path, filename: str, books: list[BookData]):
 
 def save_data_images(directory: Path, books: list[BookData], req_session: requests.Session):
     """
-    Sauvegarde les images de couvertures des livres dans le repertoire `directory`.
-    Chaque image est nommé de la facon suivante: nom_du_livre-upc.extension.
+    Sauvegarde les images de couvertures des livres dans le répertoire `directory`.
+    Chaque image est nommée de la façon suivante : 'nom_du_livre-upc.extension'.
     """
     directory.mkdir(exist_ok=True)
     if not directory.is_dir():

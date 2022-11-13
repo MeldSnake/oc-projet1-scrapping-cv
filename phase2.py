@@ -9,9 +9,8 @@ from phase1 import load_book_page
 
 def load_category_page(url: str | None, req_session: Session):
     """
-    Extrait tous les livres present sur une seule page d'une categorie,
-    le nom de la categorie en cours,
-    et l'URL d'une page suivante si disponible
+    Extrait tous les livres présents sur une seule page d'une catégorie,
+    le nom de la catégorie en cours et l'URL d'une page suivante si disponible.
     """
     books: list[data.BookData] = []
     url = data.get_full_url(url, None)
@@ -48,7 +47,7 @@ def load_category_page(url: str | None, req_session: Session):
 
 
 def load_category(url: str | None, req_session: Session):
-    """Extrait tous les livres present dans une seule categorie."""
+    """Extrait tous les livres présent dans une seule catégorie."""
     all_books: list[data.BookData] = []
     category_name = None
     while (res := load_category_page(url, req_session)) is not None:

@@ -22,8 +22,8 @@ def load_categories_list(req_session: Session):
 
 def load_all_categories(categories: dict[str, str | None], req_session: Session):
     """
-    Extrait toutes les categories depuis la liste de categorie donnée.
-    :param categories Contient un dictionaire liant une categorie à son URL.
+    Extrait toutes les catégories depuis la liste de catégorie donnée.
+    :param catégories Contient un dictionnaire liant une catégorie à son URL.
     """
     all_categories: dict[str, list[data.BookData]] = dict()
     for category_name, category_url in categories.items():
@@ -36,8 +36,8 @@ def load_all_categories(categories: dict[str, str | None], req_session: Session)
 
 def save_all_categories(dest_folder: pathlib.Path, categories: dict[str, list[data.BookData]], req_session: Session, with_images: bool = False):
     """
-    Charge toutes les categories dans leurs fichiers respectifs.
-    Optionellement charge toutes les images de couvertures de chacun des livres dans un dossiers respectif a leurs categories.
+    Charge toutes les catégories dans leurs fichiers respectifs.
+    Optionnellement charge toutes les images de couvertures de chacun des livres dans un dossier respectif à leurs catégories.
     """
     for name, books in categories.items():
         save_category(dest_folder, name, books, req_session, with_images)
