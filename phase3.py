@@ -16,7 +16,7 @@ def load_categories_list(req_session: Session):
         else:
             doc = BeautifulSoup(response.content, 'html.parser')
             cat_links = [x for x in doc.select('.page .side_categories>ul>li>ul>li>a') if x is not None]
-            categories = dict([(x.text.strip(), x.attrs.get('href', '').strip()) for x in cat_links])
+            categories = dict([(x.text.strip().lower(), x.attrs.get('href', '').strip()) for x in cat_links])
     return categories
 
 

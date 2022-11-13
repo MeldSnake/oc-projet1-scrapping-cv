@@ -10,7 +10,7 @@ AVAILABILITY_RE = re.compile(r'^.*\((?P<count>\d+) available\)')
 """Expression reguliere permettant d'extraire le nombre de produit disponible."""
 
 
-def load_book_page(url: str | None, req_session: Session) -> data.BookData | None:
+def load_book_page(url: str | None, req_session: Session, indent: int = 0) -> data.BookData | None:
     """
     Extrait les données de la page d'un livre et les restituent dans un dictionnaire.
     """
@@ -18,16 +18,20 @@ def load_book_page(url: str | None, req_session: Session) -> data.BookData | Non
     if url is None:
         return None
 
+    print('\t'*indent, 'Traitement du livre: ', url, ' ... ', sep='', end='')
     response = req_session.get(url)
     if not response.ok or response.status_code != 200:
+        print('Echec')
+        print('\t'*indent, 'Livre non traiter: ', response.reason, sep='')
         return None
+    print('Succès')
     doc = BeautifulSoup(response.content, 'html.parser')
 
     breadcrumb = doc.select('body>.page>.page_inner ul.breadcrumb li')
     product_page = doc.select_one('body>.page>.page_inner article.product_page')
 
     book = data.BookData(**{})
-    book["category"] = breadcrumb[-2].text.strip()
+    book["category"] = breadcrumb[-2].text.strip().lower()
     cover_img = product_page.select_one('#product_gallery img[src]:not([src=""])')
     book['image_url'] = data.get_full_url(cover_img.attrs["src"].strip(), url) or ""
     product_main = product_page.select_one(".product_main")
@@ -69,13 +73,14 @@ def load_book_page(url: str | None, req_session: Session) -> data.BookData | Non
                 pass
 
     book['product_page_url'] = url
+    book['image_path'] = str(pathlib.Path(book['category']) / data.slugify_book_name(book))
     return book
 
 
 def save_single_book(destination: pathlib.Path, book: data.BookData | None):
     """Charge un seul livre dans son propre fichier CSV."""
     if book is not None:
-        data.save_data_csv(destination, f"{data.slugify(book['title'])}-{book['universal_product_code (upc)']}", [book])
+        data.save_data_csv(destination, data.slugify_book_name(book), [book])
 
 
 if __name__ == "__main__":

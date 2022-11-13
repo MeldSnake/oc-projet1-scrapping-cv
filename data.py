@@ -100,7 +100,7 @@ def save_data_images(directory: Path, books: list[BookData], req_session: reques
     Sauvegarde les images de couvertures des livres dans le répertoire `directory`.
     Chaque image est nommée de la façon suivante : 'nom_du_livre-upc.extension'.
     """
-    directory.mkdir(exist_ok=True)
+    directory.mkdir(exist_ok=True, parents=True)
     if not directory.is_dir():
         return
     for book in books:
@@ -111,9 +111,13 @@ def save_data_images(directory: Path, books: list[BookData], req_session: reques
         _, extension = image_url_info.path.rsplit('.', 1)
         with req_session.get(image_url) as response:
             if response.ok and response.status_code == 200:
-                with open(directory / f"{data.slugify(book['title'])}-{book['universal_product_code (upc)']}.{extension}", 'wb') as img_fd:
+                with open(directory / f"{slugify_book_name(book)}.{extension}", 'wb') as img_fd:
                     for chunk in response.iter_content(8192):
                         img_fd.write(chunk)
+
+
+def slugify_book_name(book: BookData):
+    return f"{data.slugify(book['title'])}-{book['universal_product_code (upc)']}"
 
 
 def slugify(filename: str):
