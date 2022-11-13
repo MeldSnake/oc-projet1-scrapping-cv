@@ -9,6 +9,7 @@ from phase2 import load_category, save_category
 
 
 def load_categories_list(req_session: Session):
+    """Extrait toutes les URLs des categories depuis le site de books.toscrap.com."""
     with req_session.get(data.BOOK_TO_SCRAPE_ROOT_URL) as response:
         if not response.ok or response.status_code != 200:
             categories: dict[str, str | None] = dict()
@@ -20,6 +21,10 @@ def load_categories_list(req_session: Session):
 
 
 def load_all_categories(categories: dict[str, str | None], req_session: Session):
+    """
+    Extrait toutes les categories depuis la liste de categorie donnée.
+    :param categories Contient un dictionaire liant une categorie à son URL.
+    """
     all_categories: dict[str, list[data.BookData]] = dict()
     for category_name, category_url in categories.items():
         if category_url is not None and category_url != '':
@@ -30,6 +35,10 @@ def load_all_categories(categories: dict[str, str | None], req_session: Session)
 
 
 def save_all_categories(dest_folder: pathlib.Path, categories: dict[str, list[data.BookData]], req_session: Session, with_images: bool = False):
+    """
+    Charge toutes les categories dans leurs fichiers respectifs.
+    Optionellement charge toutes les images de couvertures de chacun des livres dans un dossiers respectif a leurs categories.
+    """
     for name, books in categories.items():
         save_category(dest_folder, name, books, req_session, with_images)
 

@@ -7,9 +7,13 @@ from requests import Session
 import data
 
 AVAILABILITY_RE = re.compile(r'^.*\((?P<count>\d+) available\)')
+"""Expression reguliere permettant d'extraire le nombre de produit disponible."""
 
 
 def load_book_page(url: str | None, req_session: Session) -> data.BookData | None:
+    """
+    Extrait les données de la page d'un livre et les restituent dans un dictionnaire.
+    """
     url = data.get_full_url(url, None)
     if url is None:
         return None
@@ -69,6 +73,7 @@ def load_book_page(url: str | None, req_session: Session) -> data.BookData | Non
 
 
 def save_single_book(destination: pathlib.Path, book: data.BookData | None):
+    """Charge un seul livre dans son propre fichier CSV."""
     if book is not None:
         data.save_data_csv(destination, f"{book['title']}-{book['universal_product_code (upc)']}", [book])
 

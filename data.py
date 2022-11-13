@@ -18,6 +18,7 @@ RATING_MAPPING = {
     "Four": 4,
     "Five": 5
 }
+"""Mapping pour l'assignation de valeures relative a la note des livres."""
 
 
 BookData = TypedDict('BookData', {
@@ -32,15 +33,21 @@ BookData = TypedDict('BookData', {
     'review_rating': float,
     'image_url': str,
 })
+"""Hashmap representant un livre, identique a ce qui est stocké dans les fichiers CSV."""
 
 
 def is_absolute_url(url: str | ParseResult):
+    """Verifie qu'une URL est absolue."""
     if isinstance(url, str):
         url = urlparse(url)
     return url.netloc != ''
 
 
 def get_full_url(url: str | ParseResult | None, parent_url: str | ParseResult | None):
+    """
+    Join une url relative a une url de base ou retourne url si celle-ci est absolue.
+    Retourne None dans le cas ou aucune URL absolue n'a pu ëtre crée.
+    """
     if isinstance(parent_url, str):
         parent_url = urlparse(parent_url)
     if url is not None:
@@ -60,6 +67,9 @@ def get_full_url(url: str | ParseResult | None, parent_url: str | ParseResult | 
 
 
 def save_data_csv(directory: Path, filename: str, books: list[BookData]):
+    """
+    Enregistre les livres donnés dans un fichier nommé `filename`.csv dans le repertoire `directory`.
+    """
     filename = slugify(filename.removesuffix('.csv')) + '.csv'
     directory.mkdir(parents=True, exist_ok=True)
     if not directory.is_dir():
@@ -82,6 +92,10 @@ def save_data_csv(directory: Path, filename: str, books: list[BookData]):
 
 
 def save_data_images(directory: Path, books: list[BookData], req_session: requests.Session):
+    """
+    Sauvegarde les images de couvertures des livres dans le repertoire `directory`.
+    Chaque image est nommé de la facon suivante: nom_du_livre-upc.extension.
+    """
     directory.mkdir(exist_ok=True)
     if not directory.is_dir():
         return
@@ -99,6 +113,7 @@ def save_data_images(directory: Path, books: list[BookData], req_session: reques
 
 
 def slugify(filename: str):
+    """Transforme la chaîne de caractères `filename` afin que celle-ci puisse être utilisé en tant que nom de fichier."""
     filename = re.sub(r'[^\w\d\s-]', '', filename) \
         .strip() \
         .lower()
