@@ -1,5 +1,6 @@
 
 import pathlib
+from typing import Iterable
 
 from bs4 import BeautifulSoup
 from requests import Session
@@ -25,21 +26,19 @@ def load_all_categories(categories: dict[str, str | None], req_session: Session)
     Extrait toutes les catégories depuis la liste de catégorie donnée.
     :param catégories Contient un dictionnaire liant une catégorie à son URL.
     """
-    all_categories: dict[str, list[data.BookData]] = dict()
     for category_name, category_url in categories.items():
         if category_url is not None and category_url != '':
             category_url = data.get_full_url(category_url, data.BOOK_TO_SCRAPE_ROOT_URL)
-            books, _ = load_category(category_url, req_session)
-            all_categories[category_name] = books
-    return all_categories
+            books = load_category(category_url, req_session)
+            yield (category_name, books)
 
 
-def save_all_categories(dest_folder: pathlib.Path, categories: dict[str, list[data.BookData]], req_session: Session, with_images: bool = False):
+def save_all_categories(dest_folder: pathlib.Path, categories: Iterable[tuple[str, Iterable[data.BookData]]], req_session: Session, with_images: bool = False):
     """
     Charge toutes les catégories dans leurs fichiers respectifs.
     Optionnellement charge toutes les images de couvertures de chacun des livres dans un dossier respectif à leurs catégories.
     """
-    for name, books in categories.items():
+    for name, books in categories:
         save_category(dest_folder, name, books, req_session, with_images)
 
 

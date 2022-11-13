@@ -1,7 +1,7 @@
 import csv
 import re
 from pathlib import Path
-from typing import LiteralString, TypedDict
+from typing import Iterable, LiteralString, TypedDict
 from urllib.parse import ParseResult, urljoin, urlparse
 
 import requests
@@ -69,7 +69,7 @@ def get_full_url(url: str | ParseResult | None, parent_url: str | ParseResult | 
     return None
 
 
-def save_data_csv(directory: Path, filename: str, books: list[BookData]):
+def save_data_csv(directory: Path, filename: str, books: Iterable[BookData]):
     """
     Enregistre les livres donnés dans un fichier nommé `filename`.csv dans le répertoire `directory`.
     """
@@ -95,9 +95,9 @@ def save_data_csv(directory: Path, filename: str, books: list[BookData]):
         csv_writer.writerows(books)
 
 
-def save_data_images(directory: Path, books: list[BookData], req_session: requests.Session):
+def save_data_images(directory: Path, books: Iterable[BookData], req_session: requests.Session):
     """
-    Sauvegarde les images de couvertures des livres dans le répertoire `directory`.
+    Sauvegarde les images de couvertures des livres dans le répertoire `directory/book['image_path']`.
     Chaque image est nommée de la façon suivante : 'nom_du_livre-upc.extension'.
     """
     directory.mkdir(exist_ok=True, parents=True)
@@ -107,11 +107,16 @@ def save_data_images(directory: Path, books: list[BookData], req_session: reques
         image_url = book['image_url']
         if image_url == '':
             continue
-        image_url_info = urlparse(image_url)
-        _, extension = image_url_info.path.rsplit('.', 1)
-        with req_session.get(image_url) as response:
-            if response.ok and response.status_code == 200:
-                with open(directory / f"{slugify_book_name(book)}.{extension}", 'wb') as img_fd:
+        image_path = directory / Path(book['image_path'])
+        if image_path.exists():
+            file_stat = image_path.stat()
+            if file_stat.st_size != 0:
+                continue
+        else:
+            image_path.parent.mkdir(exist_ok=True, parents=True)
+        with open(image_path, 'wb') as img_fd:
+            with req_session.get(image_url) as response:
+                if response.ok and response.status_code == 200:
                     for chunk in response.iter_content(8192):
                         img_fd.write(chunk)
 

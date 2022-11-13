@@ -73,8 +73,7 @@ def load_book_page(url: str | None, req_session: Session, indent: int = 0) -> da
                 pass
 
     book['product_page_url'] = url
-    _, cover_extension = book['image_url'].rsplit('.', 1)
-    book['image_path'] = str(pathlib.Path(book['category']) / data.slugify_book_name(book)) + '.' + cover_extension.lower()
+    book['image_path'] = str(pathlib.Path(book['category']) / (data.slugify_book_name(book) + "." + book['image_url'].rsplit('.', 1)[-1]))
     return book
 
 

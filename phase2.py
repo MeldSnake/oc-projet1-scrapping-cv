@@ -1,4 +1,5 @@
 import pathlib
+from typing import Iterable
 
 from bs4 import BeautifulSoup
 from requests import Session
@@ -50,21 +51,23 @@ def load_category_page(url: str | None, req_session: Session, indent=0):
 def load_category(url: str | None, req_session: Session, indent: int = 0):
     """Extrait tous les livres présent dans une seule catégorie."""
     print('\t'*indent, 'Traitement de la categorie:', sep='')
-    all_books: list[data.BookData] = []
+    count = 0
     category_name = None
     while (res := load_category_page(url, req_session, indent=indent)) is not None:
         books, category_name, url = res
-        all_books.extend(books)
-    print('\t'*indent, 'Categorie ', category_name, ' traiter, ', len(all_books), ' livres trouvé.', sep='')
-    return all_books, category_name
+        for book in books:
+            count += 1
+            yield book
+    print('\t'*indent, 'Categorie ', category_name, ' traiter, ', count, ' livres trouvé.', sep='')
 
 
-def save_category(destination: pathlib.Path, category_name: str, books: list[data.BookData], req_session: Session, with_images: bool = False):
+def save_category(destination: pathlib.Path, category_name: str, books: Iterable[data.BookData], req_session: Session, with_images: bool = False):
     """Charge les livres dans un fichier CSV."""
+    books = list(books)
     data.save_data_csv(destination, category_name, books)
     if with_images:
         print("Extraction des couvertures... ", end='')
-        data.save_data_images(destination / data.slugify(category_name.lower().removesuffix('.csv')), books, req_session)
+        data.save_data_images(destination, books, req_session)
         print()
 
 
@@ -72,5 +75,9 @@ if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1:
         with Session() as session:
-            books, category_name = load_category(sys.argv[1], session)
-            save_category(pathlib.Path.cwd() / "output" / "phase2", category_name or "unknown", books, session)
+            books = list(load_category(sys.argv[1], session))
+            if len(books) > 0:
+                category_name = books[0]['category'].capitalize()
+            else:
+                category_name = "unknown"
+            save_category(pathlib.Path.cwd() / "output" / "phase2", category_name, books, session)
