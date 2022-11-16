@@ -66,9 +66,8 @@ def save_category(destination: pathlib.Path, category_name: str, books: Iterable
     books = list(books)
     data.save_data_csv(destination, category_name, books)
     if with_images:
-        print("Extraction des couvertures... ", end='')
+        print("Extraction des couvertures...")
         data.save_data_images(destination, books, req_session)
-        print()
 
 
 if __name__ == "__main__":
